@@ -89,11 +89,12 @@ class WindowAttention(nn.Module):
         super().__init__()
         self.dim = dim
         self.window_size = window_size  # Wh, Ww
-        self.num_heads = num_heads
+        self.num_heads = num_heads          # 3
         head_dim = dim // num_heads
         self.scale = qk_scale or head_dim ** -0.5
 
         # define a parameter table of relative position bias
+        # 可学习的参数表，用于存储不同相对位置的偏置值，帮助模型学习空间位置关系。
         self.relative_position_bias_table = nn.Parameter(
             torch.zeros((2 * window_size[0] - 1) * (2 * window_size[1] - 1), num_heads))  # 2*Wh-1 * 2*Ww-1, nH
 
@@ -175,11 +176,11 @@ class SwinTransformerBlock(nn.Module):
                  mlp_ratio=4., qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
                  act_layer=nn.GELU, norm_layer=nn.LayerNorm):
         super().__init__()
-        self.dim = dim
-        self.num_heads = num_heads
-        self.window_size = window_size
+        self.dim = dim          # 96
+        self.num_heads = num_heads      # 3
+        self.window_size = window_size          # 7
         self.shift_size = shift_size
-        self.mlp_ratio = mlp_ratio
+        self.mlp_ratio = mlp_ratio          # 4
         assert 0 <= self.shift_size < self.window_size, "shift_size must in 0-window_size"
 
         self.norm1 = norm_layer(dim)
@@ -367,11 +368,11 @@ class BasicLayer(nn.Module):
             H, W: Spatial resolution of the input feature.
         """
 
-        # calculate attention mask for SW-MSA
+        # calculate attention mask for SW-MSA       # 生成图像掩码（img_mask）
         Hp = int(np.ceil(H / self.window_size)) * self.window_size
         Wp = int(np.ceil(W / self.window_size)) * self.window_size
         img_mask = torch.zeros((1, Hp, Wp, 1), device=x.device)  # 1 Hp Wp 1
-        h_slices = (slice(0, -self.window_size),
+        h_slices = (slice(0, -self.window_size),            # 将填充后的特征图（Hp x Wp）沿高度和宽度各分为 3 个区域（通过 h_slices 和 w_slices 定义），共 3x3=9 个区域，每个区域分配唯一的标签（0-8）。
                     slice(-self.window_size, -self.shift_size),
                     slice(-self.shift_size, None))
         w_slices = (slice(0, -self.window_size),
@@ -498,7 +499,7 @@ class SwinTransformer(nn.Module):
         super().__init__()
 
         self.pretrain_img_size = pretrain_img_size
-        self.num_layers = len(depths)
+        self.num_layers = len(depths)  # 4
         self.embed_dim = embed_dim
         self.ape = ape
         self.patch_norm = patch_norm
