@@ -1,3 +1,8 @@
+_base_ = [
+  # './mask_rcnn_r50_fpn.py',
+  '../datasets/coco_instance.py',
+  '../schedules/schedule_1x.py', '../default_runtime.py'
+]
 # model settings
 model = dict(
     type='MaskRCNN',
